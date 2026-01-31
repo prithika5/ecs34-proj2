@@ -75,46 +75,64 @@ struct CXMLWriter::SImplementation {
     }
 
     bool WriteEntity(const SXMLEntity &e) {
-        if (!Sink){
+        if (!Sink) {
             return false;
         }
-
+    
         if (e.DType == SXMLEntity::EType::StartElement) {
-            if (e.DNameData.empty()){
+            if (e.DNameData.empty()) {
                 return false;
             }
-
+    
             PutStr("<");
             PutStr(e.DNameData);
             PutAttr(e.DAttributes);
             PutStr(">");
-
             Open.push_back(e.DNameData);
             return true;
         }
-
+    
         if (e.DType == SXMLEntity::EType::EndElement) {
-            if (e.DNameData.empty()){
+            if (e.DNameData.empty()) {
                 return false;
             }
-            if (Open.empty()){
+            if (Open.empty()) {
                 return false;
             }
-            if (Open.back() != e.DNameData){
+            if (Open.back() != e.DNameData) {
                 return false;
             }
-
+    
             PutStr("</");
             PutStr(e.DNameData);
             PutStr(">");
-
             Open.pop_back();
-            
             return true;
         }
-
+    
+        if (e.DType == SXMLEntity::EType::CompleteElement) {
+            if (e.DNameData.empty()) {
+                return false;
+            }
+    
+            PutStr("<");
+            PutStr(e.DNameData);
+            PutAttr(e.DAttributes);
+            PutStr("/>");
+    
+            return true;
+        }
+    
+        if (e.DType == SXMLEntity::EType::CharData) {
+            PutStr(EscText(e.DNameData));
+            return true;
+        }
+    
         return true;
     }
+    
+
+   
 
 
     bool Flush() {
