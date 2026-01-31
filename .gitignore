@@ -1,0 +1,12 @@
+bin/
+obj/
+lib/
+testbin/
+testobj/
+htmlcov/
+*.o
+*.a
+*.out
+*.gcda
+*.gcno
+*.gcov
