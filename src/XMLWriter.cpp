@@ -23,10 +23,18 @@ struct CXMLWriter::SImplementation {
     std::string EscText(const std::string &s) {
         std::string out;
         for (char c : s) {
-            if (c == '&') out += "&amp;";
-            else if (c == '<') out += "&lt;";
-            else if (c == '>') out += "&gt;";
-            else out += c;
+            if (c == '&'){
+                out += "&amp;";
+            }
+            else if (c == '<'){
+                 out += "&lt;";
+            }
+            else if (c == '>'){
+                 out += "&gt;";
+            }
+            else{
+                out += c;
+            }
         }
         return out;
     }
@@ -34,11 +42,21 @@ struct CXMLWriter::SImplementation {
     std::string EscAttr(const std::string &s) {
         std::string out;
         for (char c : s) {
-            if (c == '&') out += "&amp;";
-            else if (c == '<') out += "&lt;";
-            else if (c == '>') out += "&gt;";
-            else if (c == '"') out += "&quot;";
-            else out += c;
+            if (c == '&'){
+                out += "&amp;";
+            }
+            else if(c == '<'){
+                out += "&lt;";
+            }
+            else if(c == '>'){
+                out += "&gt;";
+            } 
+            else if (c == '"'){
+             out += "&quot;";
+            }
+            else{
+                out += c;
+            }
         }
         return out;
     }
@@ -47,7 +65,6 @@ struct CXMLWriter::SImplementation {
         for (TAttributes::size_type i = 0; i < attrs.size(); i++) {
             const std::string &k = attrs[i].first;
             const std::string &v = attrs[i].second;
-
             PutStr(" ");
             PutStr(k);
             PutStr("=\"");
@@ -57,9 +74,48 @@ struct CXMLWriter::SImplementation {
         return true;
     }
 
-    bool WriteEntity(const SXMLEntity &) {
+    bool WriteEntity(const SXMLEntity &e) {
+        if (!Sink){
+            return false;
+        }
+
+        if (e.DType == SXMLEntity::EType::StartElement) {
+            if (e.DNameData.empty()){
+                return false;
+            }
+
+            PutStr("<");
+            PutStr(e.DNameData);
+            PutAttr(e.DAttributes);
+            PutStr(">");
+
+            Open.push_back(e.DNameData);
+            return true;
+        }
+
+        if (e.DType == SXMLEntity::EType::EndElement) {
+            if (e.DNameData.empty()){
+                return false;
+            }
+            if (Open.empty()){
+                return false;
+            }
+            if (Open.back() != e.DNameData){
+                return false;
+            }
+
+            PutStr("</");
+            PutStr(e.DNameData);
+            PutStr(">");
+
+            Open.pop_back();
+            
+            return true;
+        }
+
         return true;
     }
+
 
     bool Flush() {
         return true;
