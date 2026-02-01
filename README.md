@@ -1,8 +1,8 @@
-# Project 3 README
+# Project 2 README
 
 ## Team Members
 - **Student 1:** Prithika Thilakarajan (923266507)
-- **Student 2:** Qi Gao (123456987)
+- **Student 2:** Qi Gao 
 
 ## Project Status
 
