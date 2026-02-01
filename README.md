@@ -2,7 +2,7 @@
 
 ## Team Members
 - **Student 1:** Prithika Thilakarajan (923266507)
-- **Student 2:** Qi Gao 
+- **Student 2:** Qi Gao (921902627)
 
 ## Project Status
 
@@ -24,9 +24,11 @@ There are no known functional issues at this time.
 
 The following prompts and responses were used to guide implementation:
 
-### Prompt 1: XML Parsing Without Root Tag
+### Student 1 (Prithika) - XML Implementation Prompts
 
-**Question:** How do I use Expat to parse XML that doesn't have one root tag, and then just ignore the fake I add?
+#### Prompt 1: XML Parsing Without Root Tag
+
+**Question:** How do I use Expat to parse XML that doesn't have one root tag, and then just ignore the fake <root> I add?
 
 **Response:** You can wrap the raw XML text in a temporary root tag before calling XML_Parse, then skip that wrapper element when returning entities.
 
@@ -54,7 +56,7 @@ if (e.DNameData == "root") {
 
 ---
 
-### Prompt 2: Saving Expat Events to Structs
+#### Prompt 2: Saving Expat Events to Structs
 
 **Question:** How do I take what Expat gives me (start tag, end tag, text, attributes) and save it into my own struct/list while it parses?
 
@@ -97,7 +99,7 @@ static void Char(void *data, const XML_Char *s, int len) {
 
 ---
 
-### Prompt 3: Writing XML Entities to CDataSink
+#### Prompt 3: Writing XML Entities to CDataSink
 
 **Question:** How do I write XML entities (start tag, end tag, text, complete tag) to a `CDataSink` in C++?
 
@@ -122,7 +124,7 @@ bool CXMLWriter::WriteEntity(const SXMLEntity &entity){
 
 ---
 
-### Prompt 4: Implementing Flush() Method
+#### Prompt 4: Implementing Flush() Method
 
 **Question:** How do I implement a Flush() method for a writer class that outputs to a sink?
 
@@ -139,7 +141,7 @@ bool CXMLWriter::Flush(){
 
 ---
 
-### Prompt 5: Unit Testing XMLWriter with GoogleTest
+#### Prompt 5: Unit Testing XMLWriter with GoogleTest
 
 **Question:** How do I write unit tests for my XMLWriter using GoogleTest and a string-based sink?
 
@@ -159,7 +161,7 @@ EXPECT_EQ(Sink->String(), "<hello/>");
 
 ---
 
-### Prompt 6: Unit Testing XMLReader with GoogleTest
+#### Prompt 6: Unit Testing XMLReader with GoogleTest
 
 **Question:** How do I write unit tests for my XMLReader using GoogleTest and a string-based source?
 
@@ -179,3 +181,105 @@ EXPECT_EQ(e.DNameData, "hi");
 **Implementation:** Implemented XMLReader tests to verify parsing behavior for start and end tags, character data, attribute handling, self-closing elements, skipping character data, multiple top-level elements, and end of input conditions.
 
 ---
+
+### Student 2 (Qi Gao) - DSV Implementation Prompts
+
+#### Prompt 1: DSVWriter Test Failure with Newlines
+
+**Question:** Why is my DSVWriter unit test failing even though the output looks correct?
+
+**Response:** Most DSV/CSV writers append a newline at the end of each row. If your test expects "A,B,C" but the writer outputs "A,B,C\n", the string comparison will fail. Fix: update expected strings in tests to include \n at the end of each WriteRow call.
+
+```cpp
+EXPECT_TRUE(w.WriteRow({"A","B","C"}));
+EXPECT_EQ(sink->String(), "A,B,C\n");
+```
+
+**Implementation:** Updated DSVWriter tests to match the writer behavior by expecting a newline at the end of every written row, including the empty row case (expected output becomes just "\n").
+
+---
+
+#### Prompt 2: Verifying DSVWriter Multi-Row Output
+
+**Question:** How can I verify that my DSVWriter correctly appends multiple rows instead of overwriting output?
+
+**Response:** Use a CStringDataSink to capture output, call WriteRow multiple times, and compare the final string. This ensures the writer appends rows correctly and includes delimiters and newlines for each call.
+
+```cpp
+w.WriteRow({"A","B"});
+w.WriteRow({"1","2"});
+EXPECT_EQ(sink->String(), "A,B\n1,2\n");
+```
+
+**Implementation:** Added a unit test that writes multiple rows sequentially and verifies that each row is appended with a newline, ensuring no data is overwritten between calls.
+
+---
+
+#### Prompt 3: Implementing Simple DSVReader
+
+**Question:** How do I implement a simple DSVReader that reads rows correctly from a CDataSource?
+
+**Response:** A simple DSVReader can read characters one at a time until it encounters a newline (\n) or reaches the end of the source. The collected line can then be split using the delimiter. Ignoring carriage returns (\r) helps support Windows-style line endings.
+
+Basic steps:
+- Return false if the source is already at end
+- Read characters using Get
+- Stop at \n
+- Ignore \r
+- Split the line by the delimiter
+
+```cpp
+bool CDSVReader::ReadRow(std::vector<std::string> &row){
+    row.clear();
+    
+    if(DImplementation->Src->End()){
+        return false;
+    }
+    
+    std::string line = "";
+    char c;
+    
+    while(!DImplementation->Src->End()){
+        if(!DImplementation->Src->Get(c)){
+            break;
+        }
+        
+        if(c == '\n'){
+            break;
+        }
+        
+        if(c != '\r'){
+            line += c;
+        }
+    }
+    
+    row = StringUtils::Split(line, std::string(1, DImplementation->Delim));
+    return true;
+}
+```
+
+**Implementation:** Implemented CDSVReader::ReadRow to read input character-by-character, stop on newline, ignore carriage returns, and split the line using StringUtils::Split to produce the output vector.
+
+---
+
+#### Prompt 4: Unit Testing DSVReader with GoogleTest
+
+**Question:** How do I write unit tests for my DSVReader using GoogleTest?
+
+**Response:** Store DSV-formatted text in a CStringDataSource, repeatedly call ReadRow, and verify both the returned row contents and the function's return value. Tests should cover empty input, multiple rows, empty fields, and alternate delimiters.
+
+```cpp
+auto src = std::make_shared<CStringDataSource>("X,Y\n1,2\n");
+CDSVReader r(src, ',');
+std::vector<std::string> row;
+
+EXPECT_TRUE(r.ReadRow(row));  // {"X","Y"}
+EXPECT_TRUE(r.ReadRow(row));  // {"1","2"}
+EXPECT_FALSE(r.ReadRow(row)); // end of input
+```
+
+**Implementation:** Added GoogleTest cases for empty input, single-row input, multiple rows, empty columns, and non-comma delimiters to confirm that ReadRow behaves correctly and stops at end-of-input.
+
+---
+
+
