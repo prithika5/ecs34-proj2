@@ -10,3 +10,4 @@ htmlcov/
 *.gcda
 *.gcno
 *.gcov
+.DS_Store
