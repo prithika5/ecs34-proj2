@@ -29,7 +29,12 @@ TEST_LDFLAGS    = $(LDFLAGS) -lgtest -lgtest_main -lpthread
 TEST_STR_OBJ_FILES         = $(TESTOBJ_DIR)/StringUtilsTest.o $(TESTOBJ_DIR)/StringUtils.o
 TEST_STRSRC_OBJ_FILES      = $(TESTOBJ_DIR)/StringDataSource.o $(TESTOBJ_DIR)/StringDataSourceTest.o
 TEST_STRSINK_OBJ_FILES     = $(TESTOBJ_DIR)/StringDataSink.o $(TESTOBJ_DIR)/StringDataSinkTest.o
-TEST_DSV_OBJ_FILES         = $(TESTOBJ_DIR)/StringDataSink.o $(TESTOBJ_DIR)/DSVWriter.o $(TESTOBJ_DIR)/DSVTest.o
+TEST_DSV_OBJ_FILES         = $(TESTOBJ_DIR)/StringDataSink.o \
+                     		 $(TESTOBJ_DIR)/StringDataSource.o \
+							 $(TESTOBJ_DIR)/StringUtils.o \
+                             $(TESTOBJ_DIR)/DSVReader.o \
+                             $(TESTOBJ_DIR)/DSVWriter.o \
+                             $(TESTOBJ_DIR)/DSVTest.o
 TEST_XML_OBJ_FILES         = $(TESTOBJ_DIR)/StringDataSink.o \
                              $(TESTOBJ_DIR)/StringDataSource.o \
                              $(TESTOBJ_DIR)/XMLWriter.o \
@@ -66,9 +71,13 @@ run_xmltest: $(TEST_XML_TARGET)
 
 
 gencoverage:
-	lcov --capture --directory . --output-file $(TESTCOVER_DIR)/coverage.info --ignore-errors source
-	lcov --remove $(TESTCOVER_DIR)/coverage.info '/usr/*' '*/testsrc/*' --output-file $(TESTCOVER_DIR)/coverage.info
-	genhtml $(TESTCOVER_DIR)/coverage.info --output-directory $(TESTCOVER_DIR)
+	lcov --quiet --capture --directory . --output-file $(TESTCOVER_DIR)/coverage.info --ignore-errors source 2>/dev/null
+	lcov --quiet --remove $(TESTCOVER_DIR)/coverage.info '/usr/*' '*/testsrc/*' --output-file $(TESTCOVER_DIR)/coverage.info 2>/dev/null
+	genhtml --quiet $(TESTCOVER_DIR)/coverage.info --output-directory $(TESTCOVER_DIR) 2>/dev/null
+	lcov --summary $(TESTCOVER_DIR)/coverage.info 2>/dev/null | grep -E "lines|functions"
+
+
+
 
 $(TEST_STR_TARGET): $(TEST_STR_OBJ_FILES)
 	$(CXX) $(TEST_CFLAGS) $(TEST_CPPFLAGS) $(TEST_STR_OBJ_FILES) $(TEST_LDFLAGS) -o $(TEST_STR_TARGET)
