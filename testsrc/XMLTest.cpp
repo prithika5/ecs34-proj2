@@ -1,9 +1,14 @@
 #include <gtest/gtest.h>
 #include "XMLWriter.h"
+#include "XMLReader.h"
+#include "StringDataSource.h"
 #include "StringDataSink.h"
 #include "XMLEntity.h"
 
-TEST(XMLTest, Empty){
+
+// XML Writer tests
+
+TEST(XMLWrite, Empty){
     std::shared_ptr<CStringDataSink> Sink = std::make_shared<CStringDataSink>();
     CXMLWriter W(Sink);
     EXPECT_TRUE(Sink->String().empty());
@@ -12,7 +17,7 @@ TEST(XMLTest, Empty){
     EXPECT_EQ(Sink->String(),"");
 }
 
-TEST(XMLTest, One){
+TEST(XMLWrite, One){
     std::shared_ptr<CStringDataSink> Sink = std::make_shared<CStringDataSink>();
     CXMLWriter W(Sink);
     SXMLEntity E;
@@ -22,7 +27,7 @@ TEST(XMLTest, One){
     EXPECT_EQ(Sink->String(),"<hello/>");
 }
 
-TEST(XMLTest, Pair){
+TEST(XMLWrite, Pair){
     std::shared_ptr<CStringDataSink> Sink = std::make_shared<CStringDataSink>();
     CXMLWriter W(Sink);
     SXMLEntity A;
@@ -36,7 +41,7 @@ TEST(XMLTest, Pair){
     EXPECT_EQ(Sink->String(),"<r></r>");
 }
 
-TEST(XMLTest, Nest){
+TEST(XMLWrite, Nest){
     std::shared_ptr<CStringDataSink> Sink = std::make_shared<CStringDataSink>();
     CXMLWriter W(Sink);
     SXMLEntity A;
@@ -51,7 +56,7 @@ TEST(XMLTest, Nest){
     EXPECT_EQ(Sink->String(),"<a><b></b></a>");
 }
 
-TEST(XMLTest, Text){
+TEST(XMLWrite, Text){
     std::shared_ptr<CStringDataSink> Sink = std::make_shared<CStringDataSink>();
     CXMLWriter W(Sink);
     SXMLEntity E;
@@ -61,7 +66,7 @@ TEST(XMLTest, Text){
     EXPECT_EQ(Sink->String(),"1&amp;2&lt;3&gt;4");
 }
 
-TEST(XMLTest, Plain){
+TEST(XMLWrite, Plain){
     std::shared_ptr<CStringDataSink> Sink = std::make_shared<CStringDataSink>();
     CXMLWriter W(Sink);
     SXMLEntity E;
@@ -71,7 +76,7 @@ TEST(XMLTest, Plain){
     EXPECT_EQ(Sink->String(),"abcd");
 }
 
-TEST(XMLTest, Attr){
+TEST(XMLWrite, Attr){
     std::shared_ptr<CStringDataSink> Sink = std::make_shared<CStringDataSink>();
     CXMLWriter W(Sink);
     SXMLEntity E;
@@ -83,7 +88,7 @@ TEST(XMLTest, Attr){
     EXPECT_EQ(Sink->String(),"<x a=\"Hello&amp;&quot;&lt;t&gt;\" b=\"ok\"/>");
 }
 
-TEST(XMLTest, Bad1){
+TEST(XMLWrite, Bad1){
     std::shared_ptr<CStringDataSink> Sink = std::make_shared<CStringDataSink>();
     CXMLWriter W(Sink);
     SXMLEntity E;
@@ -93,7 +98,7 @@ TEST(XMLTest, Bad1){
     EXPECT_EQ(Sink->String(),"");
 }
 
-TEST(XMLTest, Bad2){
+TEST(XMLWrite, Bad2){
     std::shared_ptr<CStringDataSink> Sink = std::make_shared<CStringDataSink>();
     CXMLWriter W(Sink);
     SXMLEntity E;
@@ -103,7 +108,7 @@ TEST(XMLTest, Bad2){
     EXPECT_EQ(Sink->String(),"");
 }
 
-TEST(XMLTest, Bad3){
+TEST(XMLWrite, Bad3){
     std::shared_ptr<CStringDataSink> Sink = std::make_shared<CStringDataSink>();
     CXMLWriter W(Sink);
     SXMLEntity E;
@@ -113,7 +118,7 @@ TEST(XMLTest, Bad3){
     EXPECT_EQ(Sink->String(),"");
 }
 
-TEST(XMLTest, Bad4){
+TEST(XMLWrite, Bad4){
     std::shared_ptr<CStringDataSink> Sink = std::make_shared<CStringDataSink>();
     CXMLWriter W(Sink);
     SXMLEntity E;
@@ -123,7 +128,7 @@ TEST(XMLTest, Bad4){
     EXPECT_EQ(Sink->String(),"");
 }
 
-TEST(XMLTest, Bad5){
+TEST(XMLWrite, Bad5){
     std::shared_ptr<CStringDataSink> Sink = std::make_shared<CStringDataSink>();
     CXMLWriter W(Sink);
     SXMLEntity A;
@@ -136,7 +141,7 @@ TEST(XMLTest, Bad5){
     EXPECT_FALSE(W.WriteEntity(B));
 }
 
-TEST(XMLTest, Other){
+TEST(XMLWrite, Other){
     std::shared_ptr<CStringDataSink> Sink = std::make_shared<CStringDataSink>();
     CXMLWriter W(Sink);
     SXMLEntity E;
@@ -146,7 +151,7 @@ TEST(XMLTest, Other){
     EXPECT_EQ(Sink->String(),"");
 }
 
-TEST(XMLTest, Null){
+TEST(XMLWrite, Null){
     std::shared_ptr<CDataSink> Sink;
     CXMLWriter W(Sink);
     SXMLEntity E;
@@ -155,7 +160,7 @@ TEST(XMLTest, Null){
     EXPECT_FALSE(W.WriteEntity(E));
 }
 
-TEST(XMLTest, Entity){
+TEST(XMLWrite, Entity){
     SXMLEntity E;
     EXPECT_FALSE(E.AttributeExists("a"));
     EXPECT_EQ(E.AttributeValue("a"),"");
@@ -165,4 +170,112 @@ TEST(XMLTest, Entity){
     EXPECT_EQ(E.AttributeValue("a"),"1");
     EXPECT_TRUE(E.SetAttribute("a", "2"));
     EXPECT_EQ(E.AttributeValue("a"),"2");
+}
+
+// XML Reader tests
+
+TEST(XMLRead, Tag){
+    std::string t = "<a></a>";
+    std::shared_ptr<CStringDataSource> s = std::make_shared<CStringDataSource>(t);
+    CXMLReader r(s);
+    SXMLEntity e;
+    EXPECT_TRUE(r.ReadEntity(e));
+    EXPECT_EQ(e.DType, SXMLEntity::EType::StartElement);
+    EXPECT_EQ(e.DNameData, "a");
+}
+
+TEST(XMLRead, End){
+    std::string t = "<a></a>";
+    std::shared_ptr<CStringDataSource> s = std::make_shared<CStringDataSource>(t);
+    CXMLReader r(s);
+    SXMLEntity e;
+    EXPECT_TRUE(r.ReadEntity(e));
+    EXPECT_TRUE(r.ReadEntity(e));
+    EXPECT_EQ(e.DType, SXMLEntity::EType::EndElement);
+    EXPECT_EQ(e.DNameData, "a");
+}
+
+TEST(XMLRead, Txt){
+    std::string t = "<a>hi</a>";
+    std::shared_ptr<CStringDataSource> s = std::make_shared<CStringDataSource>(t);
+    CXMLReader r(s);
+    SXMLEntity e;
+    EXPECT_TRUE(r.ReadEntity(e));
+    EXPECT_TRUE(r.ReadEntity(e));
+    EXPECT_EQ(e.DType, SXMLEntity::EType::CharData);
+    EXPECT_EQ(e.DNameData, "hi");
+}
+
+TEST(XMLRead, Skip){
+    std::string t = "<a>hi</a>";
+    std::shared_ptr<CStringDataSource> s = std::make_shared<CStringDataSource>(t);
+    CXMLReader r(s);
+    SXMLEntity e;
+    EXPECT_TRUE(r.ReadEntity(e, true));
+    EXPECT_EQ(e.DType, SXMLEntity::EType::StartElement);
+    EXPECT_TRUE(r.ReadEntity(e, true));
+    EXPECT_EQ(e.DType, SXMLEntity::EType::EndElement);
+}
+
+TEST(XMLRead, Att){
+    std::string t = "<a id=\"7\"></a>";
+    std::shared_ptr<CStringDataSource> s = std::make_shared<CStringDataSource>(t);
+    CXMLReader r(s);
+    SXMLEntity e;
+    EXPECT_TRUE(r.ReadEntity(e));
+    EXPECT_TRUE(e.AttributeExists("id"));
+    EXPECT_EQ(e.AttributeValue("id"), "7");
+}
+
+TEST(XMLRead, Att2){
+    std::string t = "<a x=\"1\" y=\"2\"></a>";
+    std::shared_ptr<CStringDataSource> s = std::make_shared<CStringDataSource>(t);
+    CXMLReader r(s);
+    SXMLEntity e;
+    EXPECT_TRUE(r.ReadEntity(e));
+    EXPECT_EQ(e.AttributeValue("x"), "1");
+    EXPECT_EQ(e.AttributeValue("y"), "2");
+}
+
+TEST(XMLRead, Self){
+    std::string t = "<a/>";
+    std::shared_ptr<CStringDataSource> s = std::make_shared<CStringDataSource>(t);
+    CXMLReader r(s);
+    SXMLEntity e;
+    EXPECT_TRUE(r.ReadEntity(e));
+    EXPECT_EQ(e.DType, SXMLEntity::EType::CompleteElement);
+    EXPECT_EQ(e.DNameData, "a");
+}
+
+TEST(XMLRead, Two){
+    std::string t = "<a></a><b></b>";
+    std::shared_ptr<CStringDataSource> s = std::make_shared<CStringDataSource>(t);
+    CXMLReader r(s);
+    SXMLEntity e;
+    EXPECT_TRUE(r.ReadEntity(e));
+    EXPECT_TRUE(r.ReadEntity(e));
+    EXPECT_TRUE(r.ReadEntity(e));
+    EXPECT_EQ(e.DNameData, "b");
+}
+
+TEST(XMLRead, Done){
+    std::string t = "<a></a>";
+    std::shared_ptr<CStringDataSource> s = std::make_shared<CStringDataSource>(t);
+    CXMLReader r(s);
+    SXMLEntity e;
+    EXPECT_TRUE(r.ReadEntity(e));
+    EXPECT_TRUE(r.ReadEntity(e));
+    EXPECT_FALSE(r.ReadEntity(e));
+    EXPECT_TRUE(r.End());
+}
+
+TEST(XMLRead, Spc){
+    std::string t = "<a>  hi  </a>";
+    std::shared_ptr<CStringDataSource> s = std::make_shared<CStringDataSource>(t);
+    CXMLReader r(s);
+    SXMLEntity e;
+    EXPECT_TRUE(r.ReadEntity(e));
+    EXPECT_TRUE(r.ReadEntity(e));
+    EXPECT_EQ(e.DType, SXMLEntity::EType::CharData);
+    EXPECT_EQ(e.DNameData, "  hi  ");
 }

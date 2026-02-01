@@ -5,9 +5,9 @@
 
 class CDataSink{
     public:
-        virtual ~CDataSink(){};
-        virtual bool Put(const char &ch) noexcept = 0;
-        virtual bool Write(const std::vector<char> &buf) noexcept = 0;
+        virtual ~CDataSink() = default; // LCOV_EXCL_LINE
+        virtual bool Put(const char &ch) noexcept = 0; // LCOV_EXCL_LINE
+        virtual bool Write(const std::vector<char> &buf) noexcept = 0; // LCOV_EXCL_LINE
 };
 
 #endif

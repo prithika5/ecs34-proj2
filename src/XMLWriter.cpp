@@ -36,8 +36,7 @@ struct CXMLWriter::SImplementation {
                 out += c;
             }
         }
-        return out;
-    }
+        return out;}
 
     std::string EscAttr(const std::string &s) {
         std::string out;
@@ -58,8 +57,7 @@ struct CXMLWriter::SImplementation {
                 out += c;
             }
         }
-        return out;
-    }
+        return out;}
 
     bool PutAttr(const TAttributes &attrs) {
         for (TAttributes::size_type i = 0; i < attrs.size(); i++) {
@@ -128,16 +126,20 @@ struct CXMLWriter::SImplementation {
             return true;
         }
     
+        return true;}
+    
+
+    bool Flush() {
+        while (!Open.empty()) {
+            std::string n = Open.back();
+            PutStr("</");
+            PutStr(n);
+            PutStr(">");
+            Open.pop_back();
+        }
         return true;
     }
     
-
-   
-
-
-    bool Flush() {
-        return true;
-    }
 };
 
 CXMLWriter::CXMLWriter(std::shared_ptr<CDataSink> sink) {
